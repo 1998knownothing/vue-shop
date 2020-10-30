@@ -37,8 +37,11 @@
             this.$http.post('login',this.formData)
             .then((res)=>{
               console.log(res)
-              const {data,meta:{msg,status}}=res.data
+              const {data,meta:{msg,status}} = res.data
               if(status===200){
+                //登录成功保存token
+                localStorage.setItem('token',data.token)
+                
                 this.$router.push({name:'home'})
                 this.$message.success(msg)
               }else{
