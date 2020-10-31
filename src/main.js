@@ -8,6 +8,9 @@ import 'element-ui/lib/theme-chalk/index.css'
 
 import '@/assets/css/reset.css'
 
+
+import moment from 'moment'
+
 Vue.use(ElementUI);
 
 
@@ -16,6 +19,15 @@ Vue.config.productionTip = false
 //axios本身不是插件,以下用法为 使得axios封装成插件 Vue.use 加载插件
 import MyServerHttp from '@/plugins/http.js'
 Vue.use(MyServerHttp)
+
+
+Vue.filter('fmtdate',(v)=>{
+  return moment(v).format('YYYY-MM-DD')
+})
+
+
+
+
 
 /* eslint-disable no-new */
 new Vue({

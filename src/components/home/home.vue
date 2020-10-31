@@ -23,8 +23,10 @@
       </el-header>
       <el-container>
         <el-aside class="aside" width="200px">
-
-              <el-menu :unique-opened="true">
+<!-- 开启路由模式 :router -->
+              <el-menu
+              :router="true"
+              :unique-opened="true">
                 <el-submenu index="1">
                   <template slot="title">
                     <i class="el-icon-location"></i>
@@ -32,7 +34,7 @@
 
                   </template>
                    <!-- <template slot="title">分组一</template> -->
-                    <el-menu-item index="1-1">用户列表</el-menu-item>
+                    <el-menu-item index="users">用户列表</el-menu-item>
 
                 </el-submenu>
 
@@ -50,7 +52,9 @@
 
         </el-aside>
         <el-container>
-          <el-main class="main">Main</el-main>
+          <el-main class="main">
+            <router-view></router-view>
+          </el-main>
         </el-container>
       </el-container>
     </el-container>
