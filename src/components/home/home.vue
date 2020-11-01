@@ -45,7 +45,7 @@
 
                   </template>
                    <!-- <template slot="title">分组一</template> -->
-                    <el-menu-item index="2-1">用户列表</el-menu-item>
+                    <el-menu-item index="rights">权限列表</el-menu-item>
 
                 </el-submenu>
               </el-menu>
