@@ -22,7 +22,7 @@
         @click="searchUser()"
         ></el-button>
       </el-input>
-      <el-button type="success">添加</el-button>
+      <el-button type="success" @click="showAdd()">添加用户</el-button>
   </el-col>
 </el-row>
     <!-- 表格-->
@@ -43,7 +43,10 @@
              prop="email"
              label="邮箱">
            </el-table-column>
-
+           <el-table-column
+             prop="mobile"
+             label="电话">
+           </el-table-column>
            <el-table-column
              prop="create_time"
              label="创建时间">
@@ -62,6 +65,7 @@
              label="用户状态">
              <template slot-scope="scope">
                <el-switch
+               @change="changeState(scope.row)"
                  v-model="scope.row.mg_state"
                  active-color="#13ce66"
                  inactive-color="#ff4949">
@@ -75,9 +79,24 @@
              label="操作">
              <template slot-scope="scope">
 
-               <el-button size="mini" plain type="primary" icon="el-icon-edit" circle></el-button>
-               <el-button size="mini" plain type="success" icon="el-icon-check" circle></el-button>
-               <el-button size="mini" plain type="danger" icon="el-icon-delete" circle></el-button>
+               <el-button
+               size="mini"
+                plain type="primary"
+                 icon="el-icon-edit"
+                 @click="showEditUserMsgBox(scope.row)"
+                  circle></el-button>
+               <el-button size="mini"
+               plain
+               type="success"
+               icon="el-icon-check"
+               @click="showSetUserRoleDia(scope.row)"
+               circle></el-button>
+               <el-button size="mini"
+                plain
+                type="danger"
+                 icon="el-icon-delete"
+                 @click="showDelUserMsgBox(scope.row.id)"
+                  circle></el-button>
              </template>
 
            </el-table-column>
@@ -88,10 +107,84 @@
           @current-change="handleCurrentChange"
           :current-page="pagenum"
           :page-sizes="[2, 4, 6, 8]"
-          :page-size="2"
+          :page-size="pagesize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
         </el-pagination>
+
+
+
+
+        <!-- Form -->
+
+
+        <el-dialog title="添加用户" :visible.sync="dialogFormVisibleAdd">
+          <el-form :model="form">
+            <el-form-item label="用户名" >
+              <el-input v-model="form.username" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="密码" >
+              <el-input v-model="form.password" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱" >
+              <el-input v-model="form.email" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="电话" >
+              <el-input v-model="form.mobile" autocomplete="off"></el-input>
+            </el-form-item>
+
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisibleAdd = false">取 消</el-button>
+            <el-button type="primary" @click="addUser()">确 定</el-button>
+          </div>
+        </el-dialog>
+
+        <el-dialog title="编辑用户" :visible.sync="dialogFormVisibleEdit" width="50%">
+          <el-form :model="form">
+            <el-form-item label="用户名" >
+              <el-input v-model="form.username" autocomplete="off" disabled></el-input>
+            </el-form-item>
+
+            <el-form-item label="邮箱" >
+              <el-input v-model="form.email" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="电话" >
+              <el-input v-model="form.mobile" autocomplete="off"></el-input>
+            </el-form-item>
+
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisibleEdit = false">取 消</el-button>
+            <el-button type="primary" @click="editUser()">确 定</el-button>
+          </div>
+        </el-dialog>
+
+
+
+        <el-dialog title="分配角色" :visible.sync="dialogFormVisibleRole" width="50%">
+          <el-form :model="form">
+            <el-form-item label="用户名" >
+              <el-input v-model="currentUsername" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="角色" >{{currentRoleId}}
+              <el-select v-model="currentRoleId">
+                <el-option label="请选择" :value="-1"></el-option>
+                 <el-option :label="item.roleName" :value="item.id"
+                 v-for="(item,i) in roles" :key="i"
+                 ></el-option>
+
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisibleRole = false">取 消</el-button>
+            <el-button type="primary" @click="setUserRole()">确 定</el-button>
+          </div>
+        </el-dialog>
+
+
+
 
 
   </el-card>
@@ -113,11 +206,27 @@
     data(){
       return{
         query:'',
-        pagenum:1,
-        pagesize:2,
+        pagenum: 1,
+        pagesize: 2,
 
         userlist: [],
-        total: -1
+        total: -1,
+        dialogFormVisibleAdd:false,
+        dialogFormVisibleEdit:false,
+        dialogFormVisibleRole:false,
+        currentRoleId: 1,
+        currentUsername:'',
+        currentUserId:-1,
+        roles:[],
+
+        form:{
+          username:'',
+          password:'',
+          email:'',
+          mobile:''
+
+        }
+
       }
     },created() {
       this.getUserList()
@@ -159,7 +268,144 @@
             },
             loadUserList(){
               this.getUserList()
+            },changeState(user){
+              this.$http.put('users/'+user.id+'/state/'+user.mg_state)
+              .then((res)=>{
+                const {
+                  meta:{status,msg},
+                      data
+                }=res.data
+                console.log(res.data)
+              })
+            },
+            showSetUserRoleDia(user){
+              this.currentUsername = user.username
+              this.currentUserId = user.id
+              //获取所有角色
+              this.$http.get('roles')
+              .then((res)=>{
+                this.roles=res.data.data
+
+              })
+              //获取当前角色id
+              this.$http.get('users/'+user.id)
+              .then((res)=>{
+                this.currentRoleId=res.data.data.rid
+
+              })
+              this.dialogFormVisibleRole=true
+            },
+            setUserRole(){
+              this.$http.put('users/'+this.currentUserId+'/role',{rid: this.currentRoleId})
+              .then((res)=>{
+                console.log('改变roleid：'+res)
+
+              })
+              this.dialogFormVisibleRole=false
             }
+            ,showAdd(){
+
+              this.dialogFormVisibleAdd = true
+              this.form={}
+            }
+            ,addUser(){
+
+              this.$http.post('users',this.form)
+              .then((res)=>{
+                console.log(res)
+                const {
+                  meta:{status,msg},
+                      data
+                }=res.data
+                if(status===201){
+                  console.log(this.form)
+                  this.$message.success(msg)
+                  this.getUserList()
+                  this.form={}
+                  /* 清空之前的form
+                  for(const key in this.form){
+                    if(this.form.hasOwnProperty(key)){
+                      this.form[key]=""
+                    }
+                  }
+
+                  */
+                  this.dialogFormVisibleAdd = false
+                }else{
+                  this.$message.warning(msg)
+                }
+              })
+
+
+
+            },
+            showEditUserMsgBox(user){
+              this.form = user
+              this.dialogFormVisibleEdit=true
+
+            },
+            editUser(){
+              this.$http.put('users/'+this.form.id,this.form)
+              .then((res)=>{
+                console.log('编辑：'+res)
+                const {
+                  meta:{status,msg},
+                      data
+                }=res.data
+                if(status===201){
+                  console.log(this.form)
+                  this.$message.success(msg)
+                  this.getUserList()
+                  this.form={}
+                  /* 清空之前的form
+                  for(const key in this.form){
+                    if(this.form.hasOwnProperty(key)){
+                      this.form[key]=""
+                    }
+                  }
+
+                  */
+                  this.dialogFormVisibleAdd = false
+                }else{
+                  this.$message.warning(msg)
+                }
+              })
+
+
+            },showDelUserMsgBox(userId){
+                      this.$confirm('删除用户, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                      }).then(() => {
+                        this.$http.delete('users/'+userId)
+                        .then((res)=>{
+                          console.log('删除：'+res)
+                          if(res.data.meta.status===200){
+                            this.pagenum = 1
+
+                            this.getUserList()
+
+                            this.$message({
+                              type: 'success',
+                              message: res.data.meta.msg
+                            });
+                          }
+
+
+                        })
+
+
+
+
+                      }).catch(() => {
+                        this.$message({
+                          type: 'info',
+                          message: '已取消删除'
+                        });
+                      });
+            }
+
     }
   }
 </script>
