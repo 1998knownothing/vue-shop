@@ -11,9 +11,10 @@
 
 <script>
   export default{
+    name:'my-brand',
     data(){
       return{
-        
+
       }
 
     },

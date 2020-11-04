@@ -14,8 +14,8 @@ import moment from 'moment'
 Vue.use(ElementUI);
 
 //全局自定义组件
-Vue.component('my-brand',MyBrand)
-
+/* Vue.component('my-brand',MyBrand) */
+Vue.component(MyBrand.name,MyBrand)
 Vue.config.productionTip = false
 
 //axios本身不是插件,以下用法为 使得axios封装成插件 Vue.use 加载插件
