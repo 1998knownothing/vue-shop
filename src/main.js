@@ -11,6 +11,8 @@ import MyBrand from '@/components/common/mybrand.vue'
 
 import moment from 'moment'
 
+ import vueEdit from 'vue-quill-editor'
+ Vue.use(vueEdit);
 Vue.use(ElementUI);
 
 //全局自定义组件
